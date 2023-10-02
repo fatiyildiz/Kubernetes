@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resultserver
+spec:
+  selector:
+    matchLabels:
+      app: resultserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: resultserver
+    spec:
+      containers:
+      - image: captaindemir/result_server
+        name: resultserver
+        env:
+
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysecret
+              key: MYSQL_PASSWORD
+
+        envFrom:
+           - configMapRef:
+              name: myconfigmap
+        ports:
+        - containerPort: 80
+          name: resultserver
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resultserver
+  labels:
+    app: resultserver
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30002
+    targetPort: 80
+  selector:
+    app: resultserver
